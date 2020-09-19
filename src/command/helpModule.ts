@@ -11,6 +11,7 @@ export default class HelpModule extends Module {
 
     @command()
     async help(msg: Message) {
+        const CODEBLOCK = "```"
         const prefix = await this.client.getPrefix(msg);
         const modules = Array.from(this.client.modules).filter(
             (mod) => getModuleCommands(mod).length !== 0
@@ -39,7 +40,25 @@ export default class HelpModule extends Module {
                 true
             );
         }, initialEmbed);
-
-        await msg.channel.send(embed);
+        
+        const nonEmbed = `${CODEBLOCK}
+${Array.from(this.client.modules)
+    .filter(mod => getModuleCommands(mod).length !== 0)
+    .map(
+        module => `${module.constructor.name}:
+${Array.from(this.client.commandManager.cmds)
+    .filter(c => c.module == module)
+    .map(cmd => `	${prefix}${cmd.id.split("/")[1]}`)
+    .join("\n")}`
+    )
+    .join("\n")}
+${CODEBLOCK}`
+        if (!msg.guild){
+            await msg.channel.send(embed);
+        } else if (!msg.guild.me!.permissionsIn(msg.channel).has("EMBED_LINKS")) {
+            await msg.channel.send(nonEmbed);
+        } else {
+            await msg.channel.send(embed);
+        }
     }
 }
