@@ -41,22 +41,24 @@ export default class HelpModule extends Module {
             );
         }, initialEmbed);
         
-        const nonEmbed = `${CODEBLOCK}
-${Array.from(this.client.modules)
-    .filter(mod => getModuleCommands(mod).length !== 0)
-    .map(
-        module => `${module.constructor.name}:
-${Array.from(this.client.commandManager.cmds)
-    .filter(c => c.module == module)
-    .map(cmd => `	${prefix}${cmd.id.split("/")[1]}`)
-    .join("\n")}`
-    )
-    .join("\n")}
-${CODEBLOCK}`
+        command
+        const nonEmbed = modules.reduce((message, module) => {
+            const commands = _commands.filter((command) => command.module === module);
+            return message.concat(module.constructor.name, "\n", commands.map((command) => {
+                const name = command.id.split("/")[1];
+                const description = command.description
+                    ? `: ${command.description}`
+                    : "";
+                return `${prefix}${name}${description}`;
+            }).join("\n") + "\n")
+        }, new Array)
+
         if (!msg.guild){
             await msg.channel.send(embed);
         } else if (!msg.guild.me!.permissionsIn(msg.channel).has("EMBED_LINKS")) {
-            await msg.channel.send(nonEmbed);
+            await msg.channel.send(`${CODEBLOCK}
+${nonEmbed.join("\n")}
+${CODEBLOCK}`);
         } else {
             await msg.channel.send(embed);
         }
